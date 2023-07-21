@@ -3,7 +3,7 @@ const express = require('express');
 const connectToDatabase =require("./config/database")
 
 
-app.use(express.json())
+// app.use(express.json())
 connectToDatabase()
 
 
