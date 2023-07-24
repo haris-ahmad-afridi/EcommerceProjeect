@@ -6,6 +6,7 @@ const product=require("./routes/productRoute")
 
 
 
+
 dotenv.config({path:'backend/config/config.env'})
 app.use(express.json())
 

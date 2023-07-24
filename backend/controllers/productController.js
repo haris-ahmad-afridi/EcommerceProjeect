@@ -1,14 +1,23 @@
 const Product=require("../models/productModel")
 const ErrorHandler = require("../utils/errorhandler")
 const catchAsyncErrors=require("../middleware/catchAsyncErrors")
+const ApiFeatures=require("../utils/apifeatures")
 
 
 exports.getAllProducts=catchAsyncErrors(async(req,res)=>{
-    const product=await Product.find()
+
+    const resultperpage=8
+    const productCount=await Product.countDocuments()
+    let apiFeatures=new ApiFeatures(Product.find(),req.query).filter()
+    .search()
+    .pagination(resultperpage)
+    const product=await apiFeatures.query
     res.status(200).json({
         success:true,
-        product
+        product,
+        productCount
     })
+ 
 })
 
 
