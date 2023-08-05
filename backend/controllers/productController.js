@@ -22,6 +22,9 @@ exports.getAllProducts=catchAsyncErrors(async(req,res)=>{
 
 
 exports.createProduct=catchAsyncErrors(async (req,res,next)=>{
+    // Here user is set in req and this is done in auth.js file(isAuthenticatedUser()) and this funcion us added in create-product route
+    // so now the below one line will set user equal to id of user and then would save in in product-data during its creation.
+    req.body.user=req.user.id
     const product=await Product.create(req.body)
     res.status(201).json({
         success:true,
