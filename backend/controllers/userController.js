@@ -17,7 +17,6 @@ exports. registerUser=catchAsyncErrors(async(req,res,next)=>{
     //     console.log("undone");
     //   }
         const {name,password, email}=req.body
-        console.log(password);
         const  user=await User.create({
             name,password,email,
             avatar:{
@@ -25,7 +24,6 @@ exports. registerUser=catchAsyncErrors(async(req,res,next)=>{
                 url:"profilrpicUrl"
             }
         })
-        console.log(user);
         sendToken(user,200,res)
         // const token=user.getJWTToken()
 
@@ -102,21 +100,129 @@ exports.resetPassword=catchAsyncErrors(async(req,res,next)=>{
         resetPasswordExpire:{$gt:Date.now()}
     })
     console.log(user);
-    // console.log(user);
-    // console.log(resetPasswordToken);
+   
     if(!user){
         return next(new ErrorHandler("Reset token Password is invalid or has been expired"))
     }
-    // console.log(req.body.password);
-    // console.log(req.body.confirmPassword);
+  
     if(req.body.password !== req.body.confirmPassword){
         return next(new ErrorHandler("Password does not match",400))
     }
-    // console.log(user[0].password);
+ 
     user.password=req.body.password
     user.resetPasswordToken=undefined
     user.resetPasswordExpire=undefined;
     await user.save({})
     sendToken(user,200,res)
+})
+// for getting details of user ---- by user
+exports.getUserDetails=catchAsyncErrors(async(req,res,next)=>{
+    const user=await User.findById(req.user.id)
+    res.status(200).json({
+        sucess:true,
+        user
+    })
+})
+// update password by user --- user
+exports.updatePassword=catchAsyncErrors(async(req,res,next)=>{
+    const user=await User.findById(req.user.id).select("+password")
 
+    const isPasswordMatched=await user.comparePassword(req.body.oldPassword)
+    
+    if(!isPasswordMatched){
+        return next(new ErrorHandler("Old Password is incorrect",400))
+    }
+
+    if(req.body.newPassword !== req.body.confirmPassword){
+        return next(new ErrorHandler("Password does not match"),400)
+    }
+    user.password=req.body.newPassword
+
+    await user.save()
+
+   sendToken(user,200,res)
+
+})
+
+// update profile info (name,email) by user --- user
+exports.updateProfile=catchAsyncErrors(async(req,res,next)=>{
+    const newUserData={
+        name:req.body.name,
+        email:req.body.email,
+    }
+
+    // we will add cloudnary update later
+    const user=await User.findByIdAndUpdate(req.user.id,newUserData,{
+        new:true,
+        runValidators:true,
+        useFindAndModify:false
+    })
+    res.status(200).send({
+        sucess:true,
+        user
+    })
+})
+
+// get All users details --- admin
+exports.getAllUsers=catchAsyncErrors(async(req,res,next)=>{
+    const users=await User.find()
+    res.status(200).json({
+        success:true,
+        users
+    })
+})
+// get single user details --- admin
+exports.getSingleUser=catchAsyncErrors(async(req,res,next)=>{
+    const user=await User.findById(req.params.id)
+    // this below one is also correct
+    // const user=await User.find({_id:req.params.id})
+    if(!user){
+        return next(new ErrorHandler(`User does not exist with id:${req.params.id}`),400)
+    }
+    res.status(200).json({
+        success:true,
+        user
+    })
+
+})
+
+// update profile Roles by admin --- admin
+exports.updateUserRole=catchAsyncErrors(async(req,res,next)=>{
+    const newUserData={
+        name:req.body.name,
+        email:req.body.email,
+        roles:req.body.roles
+    }
+
+    // we will add cloudnary update later
+    const user=await User.findByIdAndUpdate(req.params.id, newUserData ,{
+        new:true,
+        runValidators:true,
+        useFindAndModify:false,
+    })
+
+    res.status(200).send({
+        sucess:true,
+        user
+    })
+})
+
+// Delete user by admin --- admin
+exports.deleteUser=catchAsyncErrors(async(req,res,next)=>{
+   
+    const user=await User.findById(req.params.id)
+    console.log(user);
+
+    // we will add cloudnary update later
+
+    if(!user){
+        return next(new ErrorHandler(`User Does not exist with id:${req.params.id}`))
+    }
+    // user.remove() has been depricated
+    await user.deleteOne()
+
+    res.status(200).send({
+        sucess:true,
+        "message":"User deleted successfully"
+    })
 })
