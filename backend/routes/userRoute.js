@@ -1,6 +1,6 @@
 const express = require('express');
 const router=express.Router()
-const {registerUser,loginUser,logout,forgotPassword,resetPassword,getUserDetails,updatePassword,updateProfile,getAllUsers,getSingleUser,updateUserRole,deleteUser}=require("../controllers/userController")
+const {registerUser,loginUser,logout,forgotPassword,resetPassword,getUserDetails,updatePassword,updateProfile,getAllUsers,getSingleUser,updateUserRole,deleteUser,createProductReview,getProductReviews,deleteProductReview}=require("../controllers/userController")
 const {isAuthenticatedUser,authorizeRoles}=require("../utils/auth")
 
 router.route("/register").post(registerUser)
@@ -15,4 +15,7 @@ router.route("/admin/users").get(isAuthenticatedUser,authorizeRoles("admin"),get
 router.route("/admin/user/:id").get(isAuthenticatedUser,authorizeRoles("admin"),getSingleUser)
 .put(isAuthenticatedUser,authorizeRoles("admin"),updateUserRole)
 .delete(isAuthenticatedUser,authorizeRoles("admin"),deleteUser)
+// Reviews
+router.route("/review").post(isAuthenticatedUser,createProductReview)
+router.route("/reviews").get(getProductReviews).delete(isAuthenticatedUser,deleteProductReview)
 module.exports=router
